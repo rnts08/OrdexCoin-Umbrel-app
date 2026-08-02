@@ -90,6 +90,18 @@ Optional environment variables (see `webapp/entrypoint.sh`):
 | `ORDEXCOIN_WEB_USER` | _(none)_ | optional web UI basic auth user |
 | `ORDEXCOIN_WEB_PASS` | _(none)_ | optional web UI basic auth pass |
 
+## Support continued development
+
+Support on-going development and infrastructure costs.
+
+- EVM: `0x6e8e3c2b31424266e7cff59e910df1587c317427`
+- BTC: `bc1qzzvcguvqjc6qhwe2y5vy38w2zke7hksukjhm68`
+- LTC: `MPfm5QLKH1r9XxgWmH75Gyps4LDfX5c53L`
+- SOL: `GGEaCMpnyM8tB5BU4RMuLm6tgMr3q9FgMHodxDxxAGby`
+- OXC: `oxc1qcjav0mpjjvufc2zwfddnmep0janwv0czwk657e`
+
+All donated support goes directly back into development and infrastructure.
+
 ## Architecture notes
 
 - **amd64 only for now.** umbrelOS on x86_64 is fully supported. ARM64
