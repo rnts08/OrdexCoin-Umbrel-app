@@ -108,8 +108,48 @@ All donated support goes directly back into development and infrastructure. Conn
   (Raspberry Pi) needs an aarch64 daemon build plus a multi-arch image manifest;
   this is a separate future task and does not block the x86 release.
 
-## Development
+## Release Process
 
-- `webapp/` — Go web UI (single static binary) + `Dockerfile` + `entrypoint.sh`
-- `build-docker-web.sh` — build the image locally (`ordexcoin-web:local`)
-- `docs/UMBREL.md` — full integration guide and future (official store PR) steps
+The version is sourced from the `VERSION` file at the repository root. To cut a new release:
+
+```sh
+# 1. Bump the version (semantic: x.y.z)
+echo "0.1.10" > VERSION
+
+# 2. Commit and tag
+git add VERSION
+git commit -m "chore: bump version to 0.1.10"
+git tag v0.1.10
+git push origin main v0.1.10
+```
+
+The push of a `v*` tag triggers the **Release** GitHub Actions workflow (`.github/workflows/release.yml`), which:
+
+1. Builds the amd64 container image and pushes to `ghcr.io/rnts08/ordexcoin:<version>` + `latest`
+2. Resolves the image digest
+3. Renders the Umbrel package (`ordexcoin/umbrel-app.yml` + `docker-compose.yml`) from templates using the version and digest
+4. Commits the updated package to `main`
+5. Creates a GitHub Release with auto-generated notes
+
+The `Version Check` workflow runs on every PR to ensure `VERSION`, `webapp/handlers.go`, `umbrel-app.yml`, and `docker-compose.yml` all match.
+
+### Required secrets (configured once)
+
+| Secret | Scope | Purpose |
+| --- | --- | --- |
+| `GHCR_TOKEN` | `write:packages` | Push images to GHCR |
+| `GIT_TOKEN` | `repo` | Commit/push updated Umbrel package |
+
+Generate PATs at <https://github.com/settings/tokens> and add them in **Settings → Secrets → Actions**.
+
+### Local development
+
+```sh
+# Build image locally (reads VERSION file)
+./build-docker-web.sh
+
+# Run locally
+docker compose -f webapp/docker-compose.yml up
+```
+
+The Dockerfile injects the `VERSION` into the binary via `-ldflags="-X main.version=..."`.
