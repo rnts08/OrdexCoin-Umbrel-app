@@ -1,123 +1,101 @@
-# OrdexCoin Web
+# OrdexCoin — Umbrel App
 
-A lightweight, single-binary web interface for an OrdexCoin node — status,
-balances, transactions, addresses, sending, an RPC console, and an About page
-with one-click developer tips. Dark/gold theme from the OrdexCoin icon.
+Single-container package to run an **OrdexCoin node + web UI** on umbrelOS
+(x86_64). This README is about running OrdexCoin as an Umbrel application and
+what is still required to bring it to umbrelOS. For running the web UI on its
+own (dev, standalone against an existing daemon), see
+**[DEVELOPMENT.md](./DEVELOPMENT.md)**.
 
-- **Go stdlib only** — no external dependencies, no database, no build system.
-- Everything is embedded into one binary with `//go:embed`.
-- Talks to `ordexcoind` over JSON-RPC, using the daemon's `.cookie` for auth.
-- Optional HTTP basic auth for the web UI (`-ui-user` / `-ui-pass` or env).
+## What this app is
 
-## Features
+One container runs both the OrdexCoin daemon and the web UI:
 
-- **Status** — chain, height, headers, difficulty, verification progress,
-  mempool, connections, version, node warnings.
-- **Balances** — available / confirmed / unconfirmed (pending) / immature
-  (coinbase) totals derived from `listunspent`.
-- **Transactions** — latest wallet transactions with type, date, address,
-  amount, confirmations and TXID.
-- **Addresses** — all wallet addresses grouped by label with per-address
-  received totals, plus one-click generation of new receiving addresses.
-- **Send** — send OXC to any address, with an optional comment and a
-  **"Deduct network fee from the total amount"** checkbox
-  (`subtractfeefromamount`), plus a network fee estimate.
-- **Console** — run any OrdexCoin RPC command against the node or active wallet
-  and see the JSON response (with history via up/down arrows).
-- **About / support** — credits, licensing, the support addresses from the
-  OrdexCoin README, and an **auto-tip** feature that sends OXC directly to the
-  developer address from your wallet.
-
-## Build
-
-Requires Go 1.22+. No other dependencies.
-
-```sh
-cd webapp
-go build -o ordexcoin-web .
+```
+ordexcoin:latest
+ ├── /usr/local/bin/ordexcoind     (x86_64, datadir /data)
+ ├── /usr/local/bin/ordexcoin-cli
+ ├── /usr/local/bin/ordexcoin-web  (Go web UI, listens :3000)
+ └── /usr/local/bin/entrypoint.sh  (PID 1; starts daemon, then web UI)
 ```
 
-Single static binary: `./ordexcoin-web`.
+The web UI talks to the daemon over `127.0.0.1:25173` inside the container using
+cookie auth (the daemon writes `/data/.cookie`, the webapp reads it
+automatically). P2P port **25174** is published so an installed node can accept
+inbound peers and join the network (outbound discovery uses the built-in DNS
+seeds `node3.walletbuilders.com`, `ordexcoinddns.xyz`).
 
-## Run
+Web UI features: status, balances, transactions, addresses, send (with
+subtract-fee-from-amount), an RPC console, and an About page with one-click
+developer tips. Dark/gold theme from the OrdexCoin icon.
 
-Point it at a running `ordexcoind`/`ordexcoin-qt` (RPC server on the default
-port). Credentials are auto-detected from `~/.ordexcoin/.cookie`, or from
-`ordexcoin.conf` (`rpcuser`/`rpcpassword`/`rpcport`), or supplied explicitly.
+## Status
 
-```sh
-./ordexcoin-web                          # default: RPC 127.0.0.1:25173, UI 0.0.0.0:3000
-./ordexcoin-web -listen 127.0.0.1:8080   # local-only
-./ordexcoin-web -ui-user admin -ui-pass secret
-./ordexcoin-web -rpc-url http://127.0.0.1:8332 -rpcuser u -rpcpass p
-```
+| Piece | State |
+| --- | --- |
+| Web app (`webapp/`) | Done, verified (23/23 E2E checks) |
+| Container image (`webapp/Dockerfile`) | Done, verified locally |
+| Umbrel manifest (`umbrel/umbrel-app.yml`) | **Stub** — TODO fields |
+| Umbrel compose (`umbrel/docker-compose.yml`) | **Stub** — needs digest pin |
+| Image published to a registry | **Not done** |
+| Tested on umbrelOS device | **Not done** |
 
-Open `http://localhost:3000`.
+## Run it today (without umbrelOS)
 
-### Options (flag / env / default)
-
-| Flag | Env | Default |
-| --- | --- | --- |
-| `-rpc-url` | `ORDEXCOIN_RPC_URL` | `http://127.0.0.1:25173` |
-| `-datadir` | `ORDEXCOIN_DATA` | `~/.ordexcoin` (for `.cookie` / `ordexcoin.conf`) |
-| `-rpcuser` / `-rpcpass` | `ORDEXCOIN_RPC_USER` / `ORDEXCOIN_RPC_PASS` | auto (cookie) |
-| `-listen` | `ORDEXCOIN_WEB_ADDR` | `0.0.0.0:3000` |
-| `-ui-user` / `-ui-pass` | `ORDEXCOIN_WEB_USER` / `ORDEXCOIN_WEB_PASS` | disabled |
-| `-wallet` | `ORDEXCOIN_WALLET` | first loaded wallet |
-| `-rpc-timeout` | — | `60s` |
-
-## Docker (daemon + web in one container)
-
-Build from the repository root (the image also bundles the static daemon binaries):
+You can run the exact same container locally:
 
 ```sh
-./build-docker-web.sh                 # -> ordexcoin-web:local
-docker compose -f webapp/docker-compose.yml up --build
-```
-
-Or run directly:
-
-```sh
+./build-docker-web.sh
 docker run -p 3000:3000 -p 25174:25174 -v ~/.ordexcoin:/data ordexcoin-web:local
 ```
 
-The container starts `ordexcoind` (writes `/data/ordexcoin.conf` and
-`/data/.cookie` on first run), waits for RPC, then serves the web UI. It
-publishes the P2P port **25174** so the node can accept inbound peers and
-become part of the network (outbound peer discovery uses the built-in DNS
-seeds). It is shaped for umbrelOS on x86_64 — see `../docs/UMBREL.md` for the
-Umbrel packaging guide.
+Open `http://localhost:3000`. The container writes `/data/ordexcoin.conf` and
+`/data/.cookie` on first run, starts the daemon, waits for RPC, then serves the UI.
 
-### Verify the packaged image end-to-end
+## Step-by-step requirements to bring this to umbrelOS
 
-```sh
-./webapp/test-docker-web.sh
+Detailed, resumable guidance lives in **[docs/UMBREL.md](../docs/UMBREL.md)**;
+`umbrel/` contains the package stubs. The steps, in order:
+
+1. **Publish the image.** Build with `docker buildx --platform linux/amd64 -t
+   <org>/ordexcoin:<ver> -f webapp/Dockerfile .`, push to a registry, and pin the
+   resulting `sha256:<digest>` in `umbrel/docker-compose.yml`.
+2. **Finalize `umbrel/umbrel-app.yml`.** Fill in `id`, `category`, `name`,
+   description, developer, the app_proxy web port, release notes, gallery
+   screenshots and a square `icon.svg`.
+3. **Finalize `umbrel/docker-compose.yml`.** `app_proxy` → `APP_HOST:
+   ordexcoin_app_1`, `APP_PORT: 3000`; image pinned by digest; `user: "1000:1000"`;
+   `volumes: ${APP_DATA_DIR}/data:/data`; publish the P2P port
+   (`${APP_ORDEXCOIN_P2P_PORT}`); optionally pass web UI auth from
+   `${APP_PASSWORD}`/`${APP_SEED}`.
+4. **Test on a device.** Fastest path is a community app store repo (any git repo
+   with `umbrel-app-store.yml`), or rsync `umbrel/` onto the device and install
+   via `umbreld client apps.install.mutate --appId ordexcoin`.
+5. **Submit to the official store.** Fork `getumbrel/umbrel-apps`, add the
+   package, open a PR with the review checklist.
+
+### Technical TODO
+
+- [ ] Publish amd64 image to a registry and paste the digest into
+      `umbrel/docker-compose.yml`
+- [ ] Fill every `TODO` in `umbrel/umbrel-app.yml` (id, category, name,
+      description, developer, port, releaseNotes, gallery, icon.svg)
+- [ ] Add a square `icon.svg` (reuse `webapp/web/logo.png` as a starting point)
+- [ ] Add 3–5 gallery screenshots (1440×900)
+- [ ] Finalize compose: app_proxy block, digest pin, `user: "1000:1000"`,
+      `stop_grace_period: 15m30s`, data volume, P2P port publish, auth pass-through
+- [ ] Test via community app store on a real umbrelOS x86 device
+- [ ] Re-run `./webapp/test-docker-web.sh` before any release
+- [ ] (later, optional) ARM64 support: aarch64 static daemon build + multi-arch
+      manifest; the Go web UI is already architecture-independent
+
+## Package layout
+
 ```
-
-Builds the image, starts a fresh container, and runs 23 checks: static assets,
-status, wallet creation, address generation, balances, transactions, console
-(node + wallet scope + error passthrough), and send/tip validation (no real
-transactions are broadcast). Prints a PASS/FAIL summary.
-
-## Development
-
-```sh
-go vet ./...
-go test ./...
+webapp/         # Go web UI + Dockerfile + entrypoint + E2E tests
+umbrel/         # Umbrel app package stubs (umbrel-app.yml, docker-compose.yml)
+docs/UMBREL.md  # resumable umbrelOS integration guide
+linux-static/   # static amd64 daemon binaries used by the image
 ```
-
-The frontend is plain HTML/CSS/JS in `web/`, embedded at build time. Edit and
-rebuild; no bundler.
-
-## Security notes
-
-- The web UI is unauthenticated by default (intended for a trusted LAN / the
-  local container). Enable `-ui-user`/`-ui-pass` when exposing it beyond a
-  trusted network.
-- The RPC endpoint itself is never exposed by the webapp; it only ever talks to
-  the daemon over localhost using the daemon's own credentials.
-- Sending OXC and tipping broadcast **real transactions**; review the
-  confirmation dialog carefully.
 
 ## License
 
