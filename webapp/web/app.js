@@ -300,7 +300,7 @@ async function loadStatus() {
 }
 
 // Pool data (network hashrate, block reward, OXC price) is loaded from the
-// backend proxy asynchronously. If the pool or price APIs are unreachable the
+// backend proxy asynchronously. If the pool or NestEx APIs are unreachable the
 // cards simply keep their "—"/N/A placeholders; nothing here is critical.
 async function loadPool() {
   let data = {};

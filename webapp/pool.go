@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,10 +16,9 @@ import (
 )
 
 const (
-	poolAPIURL       = "https://api.miningcrypto.online/OrdexCoin/"
-	poolPageURL      = "https://pool.ordexcoin.com/"
-	liveCoinWatchURL = "https://api.livecoinwatch.com/coins/single"
-	liveCoinWatchKey = "f27e933e-ab92-4119-a39c-879e4bc1ef01"
+	poolAPIURL      = "https://api.miningcrypto.online/OrdexCoin/"
+	poolPageURL     = "https://pool.ordexcoin.com/"
+	nestExTickerURL = "https://trade.nestex.one/api/cg/tickers/OXC_USDT"
 )
 
 // blockRewardRe matches the block reward on the pool page, e.g.
@@ -36,8 +36,9 @@ type poolStats struct {
 
 // handlePool proxies three external, non-critical data sources: the pool's
 // network hashrate, the current block reward (grabbed from the pool page), and
-// the OXC price from livecoinwatch. All fetches run concurrently with a short
-// timeout; failures never produce an HTTP error, they just leave the field out.
+// the OXC price from the NestEx exchange. All fetches run concurrently with a
+// short timeout; failures never produce an HTTP error, they just leave the
+// field out.
 func (s *Server) handlePool(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -70,7 +71,7 @@ func (s *Server) handlePool(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer wg.Done()
-		if v, ok := fetchLiveCoinWatchPrice(ctx, client); ok {
+		if v, ok := fetchNestExPrice(ctx, client); ok {
 			mu.Lock()
 			stats.PriceUSD = v
 			mu.Unlock()
@@ -156,19 +157,17 @@ func fetchPoolBlockReward(ctx context.Context, client *http.Client) (*string, bo
 	return &reward, true
 }
 
-// fetchLiveCoinWatchPrice queries livecoinwatch for the OXC/USD rate.
-func fetchLiveCoinWatchPrice(ctx context.Context, client *http.Client) (*float64, bool) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, liveCoinWatchURL,
-		strings.NewReader(`{"currency":"USD","code":"OXC","meta":false}`))
+// fetchNestExPrice queries the NestEx exchange for the OXC/USDT last price.
+func fetchNestExPrice(ctx context.Context, client *http.Client) (*float64, bool) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, nestExTickerURL, nil)
 	if err != nil {
 		return nil, false
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-api-key", liveCoinWatchKey)
+	req.Header.Set("Accept", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		slog.Debug("livecoinwatch unreachable", "error", err)
+		slog.Debug("nestex unreachable", "error", err)
 		return nil, false
 	}
 	defer resp.Body.Close()
@@ -181,10 +180,14 @@ func fetchLiveCoinWatchPrice(ctx context.Context, client *http.Client) (*float64
 	}
 
 	var doc struct {
-		Rate *float64 `json:"rate"`
+		LastPrice string `json:"last_price"`
 	}
-	if err := json.Unmarshal(body, &doc); err != nil || doc.Rate == nil {
+	if err := json.Unmarshal(body, &doc); err != nil {
 		return nil, false
 	}
-	return doc.Rate, true
+	price, err := strconv.ParseFloat(strings.TrimSpace(doc.LastPrice), 64)
+	if err != nil || price <= 0 {
+		return nil, false
+	}
+	return &price, true
 }
