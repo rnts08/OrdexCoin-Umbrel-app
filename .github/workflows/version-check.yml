@@ -1,0 +1,57 @@
+name: Version Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check VERSION file
+        run: |
+          VERSION=$(cat VERSION)
+          echo "VERSION file: $VERSION"
+
+      - name: Check handlers.go version matches VERSION file
+        run: |
+          VERSION=$(cat VERSION)
+          # Extract version from handlers.go var declaration
+          HANDLERS_VER=$(grep -E '^var version = ' webapp/handlers.go | sed 's/.*"\([^"]*\)".*/\1/')
+          echo "handlers.go version: $HANDLERS_VER"
+          if [[ "$HANDLERS_VER" != "dev" && "$HANDLERS_VER" != "$VERSION" ]]; then
+            echo "::error::handlers.go version ($HANDLERS_VER) != VERSION file ($VERSION)"
+            exit 1
+          fi
+
+      - name: Check umbrel-app.yml version matches VERSION file
+        run: |
+          VERSION=$(cat VERSION)
+          UMBREL_VER=$(grep '^version:' ordexcoin/umbrel-app.yml | sed 's/.*"\([^"]*\)".*/\1/')
+          echo "umbrel-app.yml version: $UMBREL_VER"
+          if [[ "$UMBREL_VER" != "$VERSION" ]]; then
+            echo "::error::umbrel-app.yml version ($UMBREL_VER) != VERSION file ($VERSION)"
+            exit 1
+          fi
+
+      - name: Check docker-compose.yml image tag matches VERSION file
+        run: |
+          VERSION=$(cat VERSION)
+          COMPOSE_VER=$(grep 'image: ghcr.io/rnts08/ordexcoin:' ordexcoin/docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          echo "docker-compose.yml version: $COMPOSE_VER"
+          if [[ "$COMPOSE_VER" != "$VERSION" ]]; then
+            echo "::error::docker-compose.yml image version ($COMPOSE_VER) != VERSION file ($VERSION)"
+            exit 1
+          fi
+
+      - name: Validate VERSION format
+        run: |
+          VERSION=$(cat VERSION)
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::VERSION file must be semantic version (x.y.z), got: $VERSION"
+            exit 1
+          fi
