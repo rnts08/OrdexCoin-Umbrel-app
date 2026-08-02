@@ -18,8 +18,11 @@
 # --- stage 1: build the Go web UI (fully static, no CGO) --------------------
 FROM golang:1.22-alpine AS webapp-build
 WORKDIR /src
+# VERSION is injected from the repo VERSION file (or the git tag in CI) and baked
+# into the binary via -X so the running container reports its real release.
+ARG VERSION=dev
 COPY webapp/ .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ordexcoin-web .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/ordexcoin-web .
 
 # --- stage 2: runtime --------------------------------------------------------
 # glibc-based slim base is required: the "static" daemon binaries still link

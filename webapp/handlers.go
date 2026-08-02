@@ -11,7 +11,12 @@ import (
 	"time"
 )
 
-const version = "0.1.5"
+// version is the OrdexCoin web app release version. It defaults to "dev" and is
+// overridden at build time via:
+//   go build -ldflags "-X main.version=$(cat VERSION)"
+// which is wired up in the Dockerfile and CI. Keep it a variable (not a const)
+// so the linker -X flag can inject the VERSION file value.
+var version = "dev"
 
 // Server holds the API handlers and shared state.
 type Server struct {

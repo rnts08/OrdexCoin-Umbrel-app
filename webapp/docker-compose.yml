@@ -13,6 +13,8 @@ services:
     build:
       context: ..
       dockerfile: webapp/Dockerfile
+      args:
+        VERSION: "${VERSION:-dev}"
     image: ordexcoin-web:local
     ports:
       - "3000:3000"   # web UI

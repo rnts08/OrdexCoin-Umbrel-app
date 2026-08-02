@@ -5,9 +5,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 IMAGE="${1:-ordexcoin-web:local}"
+VERSION="$(cat "${ROOT_DIR}/VERSION")"
 
 cd "${ROOT_DIR}"
-docker build -t "${IMAGE}" -f webapp/Dockerfile .
+docker build --build-arg VERSION="${VERSION}" -t "${IMAGE}" -f webapp/Dockerfile .
 echo ""
 echo "==> Built ${IMAGE}"
 echo "    Run: docker compose -f webapp/docker-compose.yml up"
