@@ -1,0 +1,9 @@
+.git/
+.gitignore
+docs/
+umbrel/
+build-docker-web.sh
+*.md
+*.swp
+*.swo
+*~

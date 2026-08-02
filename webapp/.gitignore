@@ -1,0 +1,4 @@
+# compiled binary
+ordexcoin-web
+# local docker test data
+data/

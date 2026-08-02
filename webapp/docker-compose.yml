@@ -1,0 +1,23 @@
+version: "3.7"
+
+# Local development / smoke-test compose for the combined OrdexCoin container.
+#   docker compose -f webapp/docker-compose.yml up --build
+# Then open http://localhost:3000
+#
+# The daemon data directory is persisted under ./data relative to this file.
+# The P2P port (25174) is published so the node can accept inbound peers and
+# become part of the network. Outbound peer discovery uses the built-in DNS
+# seeds automatically.
+services:
+  ordexcoin:
+    build:
+      context: ..
+      dockerfile: webapp/Dockerfile
+    image: ordexcoin-web:local
+    ports:
+      - "3000:3000"   # web UI
+      - "25174:25174" # P2P (inbound peers)
+      - "25173:25173" # RPC (localhost only; cookie auth) — optional to expose
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

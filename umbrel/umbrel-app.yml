@@ -1,0 +1,47 @@
+# OrdexCoin Umbrel app — manifest (STUB — see docs/UMBREL.md).
+#
+# TODO: fill in all fields marked TODO before submission.
+# Reference: getumbrel/umbrel-apps/bitcoin/umbrel-app.yml
+manifestVersion: 1.1
+id: ordexcoin
+category: bitcoin
+name: OrdexCoin Node
+version: "0.1.0"
+tagline: Run your personal OrdexCoin node
+description: >-
+  Run a full OrdexCoin node, powered by OrdexCoin Core v25.0 (vASERT).
+
+  Independently store and validate every transaction. The bundled web interface
+  shows node status, balances, transactions and addresses, lets you send OXC and
+  gives you an RPC console — all served locally from your own node.
+
+  Don't trust. Verify.
+
+  Based on Bitcoin Core v25.0. Free and open source (MIT). Support development
+  from the About page of the app.
+releaseNotes: ""
+developer: OrdexNetwork
+website: https://github.com/OrdexNetwork   # TODO
+dependencies: []
+repo: https://github.com/OrdexNetwork/OrdexCoin-vASERT
+support: https://github.com/OrdexNetwork/OrdexCoin-vASERT/issues   # TODO
+port: 3000
+gallery:
+  - 1.jpg    # TODO: 3-5 screenshots, 1440x900
+  - 2.jpg
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+# TODO: optional widgets (stats / sync) mirroring the Bitcoin app, once the
+# webapp exposes a machine-readable JSON endpoint (e.g. /api/status).
+# widgets:
+#   - id: "status"
+#     type: "four-stats"
+#     refresh: "5s"
+#     endpoint: "app:3000/api/widget/status"
+submitter: OrdexNetwork
+submission: https://github.com/getumbrel/umbrel-apps/pull/0   # TODO
+backupIgnore:
+  - data/blocks
+  - data/chainstate
+  - data/indexes
