@@ -529,17 +529,49 @@ function renderConsole(result, rpcError) {
     : JSON.stringify(result, null, 2);
 }
 
-async function runConsole(method, paramsRaw) {
-  let params;
-  const s = paramsRaw.trim();
-  if (s === "") params = "[]";
-  else {
-    try {
-      params = JSON.stringify(JSON.parse(s));
-    } catch (e) {
-      renderConsole(null, { code: -1, message: "Invalid params JSON: " + e.message });
-      return;
+// parseCommand splits a full console line ("method arg1 arg2 ...") into a method
+// and an array of typed params. Unquoted tokens that look like numbers become
+// numbers, "true"/"false" become booleans, and everything else stays a string.
+// Double-quoted tokens are kept verbatim as strings.
+function parseCommand(raw) {
+  const tokens = [];
+  let cur = "";
+  let inQuotes = false;
+  const s = raw.trim();
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+      continue;
     }
+    if (/\s/.test(ch) && !inQuotes) {
+      if (cur !== "") { tokens.push(cur); cur = ""; }
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur !== "") tokens.push(cur);
+  if (inQuotes) return { error: "unterminated quote" };
+  const [method, ...rawArgs] = tokens;
+  const params = rawArgs.map((t) => {
+    if (t === "true") return true;
+    if (t === "false") return false;
+    const n = Number(t);
+    if (t !== "" && n === n) return n;
+    return t;
+  });
+  return { method, params };
+}
+
+async function runConsole(cmdRaw) {
+  const { method, params, error } = parseCommand(cmdRaw);
+  if (error) {
+    renderConsole(null, { code: -1, message: error });
+    return;
+  }
+  if (!method) {
+    renderConsole(null, { code: -1, message: "no command entered" });
+    return;
   }
   try {
     const data = await postJSON("/api/console", { method, params });
@@ -652,8 +684,9 @@ function bindEvents() {
 
   $("#console-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    runConsole($("#console-method").value.trim(), $("#console-params").value);
-    pushConsoleHistory($("#console-method").value.trim());
+    const cmd = $("#console-cmd").value.trim();
+    runConsole(cmd);
+    pushConsoleHistory(cmd);
   });
 
   $("#tip-form").addEventListener("submit", (e) => {
@@ -684,19 +717,19 @@ function initConsoleHistory() {
   } catch (e) {
     consoleHistory = [];
   }
-  const method = $("#console-method");
-  method.addEventListener("keydown", (e) => {
+  const cmd = $("#console-cmd");
+  cmd.addEventListener("keydown", (e) => {
     if (e.key === "ArrowUp") {
       e.preventDefault();
       if (historyIdx < 0) historyIdx = consoleHistory.length;
       historyIdx = Math.max(0, historyIdx - 1);
-      if (consoleHistory[historyIdx]) method.value = consoleHistory[historyIdx];
+      if (consoleHistory[historyIdx]) cmd.value = consoleHistory[historyIdx];
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       if (historyIdx < 0) return;
       historyIdx++;
-      if (historyIdx >= consoleHistory.length) { historyIdx = -1; method.value = ""; }
-      else method.value = consoleHistory[historyIdx];
+      if (historyIdx >= consoleHistory.length) { historyIdx = -1; cmd.value = ""; }
+      else cmd.value = consoleHistory[historyIdx];
     }
   });
 }

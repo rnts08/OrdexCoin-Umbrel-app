@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const version = "0.1.0"
+const version = "0.1.5"
 
 // Server holds the API handlers and shared state.
 type Server struct {

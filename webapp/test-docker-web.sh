@@ -61,7 +61,7 @@ check "logo.png" 200 "$code"
 
 echo "==> API: info"
 info=$(curl -s "$BASE/api/info")
-echo "$info" | grep -q '"version":"0.1.0"' && ok "info has version" || bad "info version"
+echo "$info" | grep -q '"version":"0.1.5"' && ok "info has version" || bad "info version"
 echo "$info" | grep -q '"devAddress":"oxc1qcjav0mpjjvufc2zwfddnmep0janwv0czwk657e"' && ok "info has dev address" || bad "info dev address"
 
 echo "==> API: status"

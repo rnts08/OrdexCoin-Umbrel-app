@@ -326,8 +326,7 @@ input[type="text"]:focus {
 
 /* ---------- Console ---------- */
 .console-form { display: flex; gap: 10px; margin-top: 12px; }
-.console-form #console-method { flex: 1; font-family: var(--font-mono); }
-.console-form #console-params { flex: 1.2; font-family: var(--font-mono); font-size: 13px; }
+.console-form #console-cmd { flex: 1; font-family: var(--font-mono); }
 .console-output {
   margin-top: 14px; padding: 14px; border-radius: 14px;
   background: rgba(3, 3, 3, 0.8); border: 1px solid var(--gold-soft);

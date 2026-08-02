@@ -130,8 +130,7 @@
           <h2>RPC Console</h2>
           <p class="muted">Run any OrdexCoin RPC command. Wallet commands run against the active wallet.</p>
           <form id="console-form" class="console-form">
-            <input type="text" id="console-method" list="console-methods" placeholder="method, e.g. getblockchaininfo" required autocomplete="off" spellcheck="false">
-            <input type="text" id="console-params" placeholder="params as JSON, e.g. [&quot;*&quot;, 10]" autocomplete="off" spellcheck="false">
+            <input type="text" id="console-cmd" list="console-methods" placeholder="command, e.g. getblockchaininfo or addnode 1.2.3.4:8333 onetry" required autocomplete="off" spellcheck="false">
             <button type="submit" class="btn btn-primary">Run</button>
           </form>
           <datalist id="console-methods"></datalist>
