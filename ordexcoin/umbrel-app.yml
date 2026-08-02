@@ -2,7 +2,7 @@ manifestVersion: 1.1
 id: ordexcoin
 category: bitcoin
 name: OrdexCoin Node
-version: "0.1.5"
+version: "0.1.6"
 tagline: Run your personal OrdexCoin node
 icon: https://raw.githubusercontent.com/rnts08/OrdexCoin-Umbrel-app/main/ordexcoin/icon.svg
 description: >-
@@ -17,9 +17,7 @@ description: >-
   Based on Bitcoin Core v25.0. Free and open source (MIT). Support development
   from the About page of the app.
 releaseNotes: >-
-  v0.1.5: single-field RPC console input (run full commands like
-  `addnode <addr>:<port> onetry` in one box). Container version now tracks the
-  system version. Fixes parameters being sent as a JSON string.
+  0.1.6: See https://github.com/rnts08/OrdexCoin-Umbrel-app/releases/tag/v0.1.6
 developer: OrdexNetwork
 website: https://ordexcoin.com
 dependencies: []
