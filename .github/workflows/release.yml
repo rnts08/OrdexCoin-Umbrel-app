@@ -63,6 +63,8 @@ jobs:
         id: digest
         run: |
           DIGEST=$(docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/ordexcoin:${{ steps.version.outputs.version }} --format '{{.Manifest.Digest}}')
+          # Strip sha256: prefix if present (template already includes it)
+          DIGEST="${DIGEST#sha256:}"
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Update Umbrel package
