@@ -33,6 +33,11 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates bash util-linux \
     && rm -rf /var/lib/apt/lists/*
 
+# Create ordexcoin user (UID 1000) to match umbrelOS app uid/gid.
+# Required for setpriv --init-groups to work in entrypoint.sh
+RUN groupadd -g 1000 ordexcoin \
+    && useradd -u 1000 -g ordexcoin -s /bin/bash -m ordexcoin
+
 COPY --from=webapp-build /out/ordexcoin-web /usr/local/bin/ordexcoin-web
 COPY linux-static/bin/ordexcoind /usr/local/bin/ordexcoind
 COPY linux-static/bin/ordexcoin-cli /usr/local/bin/ordexcoin-cli

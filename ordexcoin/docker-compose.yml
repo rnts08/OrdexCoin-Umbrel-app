@@ -15,7 +15,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   ordexcoin_app_1:
-    image: ghcr.io/rnts08/ordexcoin:0.1.6@sha256:29cdbea8d240bc584f322cce8c4c4868c65e0c030b93a85010150d11a909df7d
+    image: ghcr.io/rnts08/ordexcoin:0.1.6@sha256:49145349ce840c2d8902000efa240ab33d62c3536cf421c7b33a5e2d3790ddd5
     # No `user` is set: the container starts as root so the entrypoint can
     # repair the ownership of ${APP_DATA_DIR}/data (umbrelOS and root-created
     # mounts are not writable by the runtime uid). The entrypoint then drops to
