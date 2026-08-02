@@ -15,7 +15,7 @@ The **webapp** and its **container image** are done and verified:
   UI on port 3000 with the daemon's RPC reachable on 25173.
 
 What remains is the **Umbrel app package** (manifest + compose + store
-submission). Stub files live in `umbrel/`.
+submission). The app package lives in `ordexcoin/`.
 
 ## Umbrel app model (reference)
 
@@ -92,16 +92,16 @@ docker buildx build --platform linux/amd64,linux/arm64 -t <org>/ordexcoin:<ver> 
 docker images --digests <org>/ordexcoin   # note the sha256:<digest> and paste into compose
 ```
 
-### 2. Finalize `umbrel/umbrel-app.yml`
+### 2. Finalize `ordexcoin/umbrel-app.yml`
 
-See `umbrel/umbrel-app.yml` stub. Fill in: `id` (suggest `ordexcoin`),
+See `ordexcoin/umbrel-app.yml`. Fill in: `id` (suggest `ordexcoin`),
 `category` (`bitcoin`), `name` ("OrdexCoin Node"), description, developer,
 `port` (the app_proxy-exposed web port, e.g. `3000`), `releaseNotes`, gallery
 (3–5 × 1440×900 screenshots), and a square `icon.svg`.
 
-### 3. Finalize `umbrel/docker-compose.yml`
+### 3. Finalize `ordexcoin/docker-compose.yml`
 
-See `umbrel/docker-compose.yml` stub. Key points:
+See `ordexcoin/docker-compose.yml`. Key points:
 - `app_proxy` with `APP_HOST: ordexcoin_app_1`, `APP_PORT: 3000`
 - main service pinned `image: <org>/ordexcoin:<ver>@sha256:<digest>`
 - `user: "1000:1000"`, `restart: on-failure`, `stop_grace_period: 15m30s`
@@ -120,7 +120,7 @@ ordexcoin/docker-compose.yml
 ```
 
 Then in the umbrelOS App Store → "Community App Store" → paste the repo URL.
-Alternatively rsync `umbrel/` into the on-device app-store dir and install via
+Alternatively rsync `ordexcoin/` into the on-device app-store dir and install via
 `umbreld client apps.install.mutate --appId ordexcoin`.
 
 ### 5. Submit to the official store

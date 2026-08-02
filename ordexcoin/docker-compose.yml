@@ -1,11 +1,8 @@
-# OrdexCoin Umbrel app — compose (STUB — see docs/UMBREL.md).
+# OrdexCoin Umbrel app — compose.
 #
 # Target platform: umbrelOS on x86_64 (amd64). The container image ships the
-# amd64 static daemon + the web UI; see docs/UMBREL.md for the optional ARM64
-# (Raspberry Pi) path.
-#
-# TODO: publish the image and pin the multi-arch digest:
-#   image: <org>/ordexcoin:<version>@sha256:<digest>
+# amd64 static daemon + the web UI. Image is public on GHCR:
+#   ghcr.io/rnts08/ordexcoin:0.1.0
 #
 # Reference: getumbrel/umbrel-apps/bitcoin/docker-compose.yml
 version: "3.7"
@@ -18,7 +15,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   app:
-    image: <org>/ordexcoin:0.1.0@sha256:<digest>   # TODO: pin digest
+    image: ghcr.io/rnts08/ordexcoin:0.1.0@sha256:e37b9f1575433003be774cc45faf5fd914c24b345904a6884dc1505cb420a69d
     user: "1000:1000"
     restart: on-failure
     stop_grace_period: 15m30s
