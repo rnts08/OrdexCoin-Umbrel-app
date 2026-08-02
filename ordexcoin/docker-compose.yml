@@ -2,7 +2,7 @@
 #
 # Target platform: umbrelOS on x86_64 (amd64). The container image ships the
 # amd64 static daemon + the web UI. Image is public on GHCR:
-#   ghcr.io/rnts08/ordexcoin:0.1.8
+#   ghcr.io/rnts08/ordexcoin:0.1.9
 #
 # Reference: getumbrel/umbrel-apps/bitcoin/docker-compose.yml
 version: "3.7"
@@ -15,7 +15,7 @@ services:
       PROXY_AUTH_ADD: "false"
 
   ordexcoin_app_1:
-    image: ghcr.io/rnts08/ordexcoin:0.1.8@sha256:1f9224bb1fae2fbc79a19f2b17247ce7face09af783893b6284c0f712865c193
+    image: ghcr.io/rnts08/ordexcoin:0.1.9@sha256:a42ca269bf821689252d99f053d9b65155e520a5f091187eb6e42472ca74ea20
     # No `user` is set: the container starts as root so the entrypoint can
     # repair the ownership of ${APP_DATA_DIR}/data (umbrelOS and root-created
     # mounts are not writable by the runtime uid). The entrypoint then drops to
