@@ -96,6 +96,10 @@ echo "==> API: fee estimate"
 fee=$(curl -s "$BASE/api/fee-estimate")
 echo "$fee" | grep -q '"available"' && ok "fee estimate endpoint" || bad "fee: $fee"
 
+echo "==> API: pool (external proxy; fields optional, must be valid JSON)"
+pool=$(curl -s "$BASE/api/pool")
+echo "$pool" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d, dict), d; assert set(d) <= {'networkHashrate','blockReward','priceUsd'}, d" && ok "pool endpoint returns valid JSON" || bad "pool: $pool"
+
 echo "==> API: console (node + wallet scope)"
 bc=$(curl -s -X POST "$BASE/api/console" -d '{"method":"getblockcount","params":[]}')
 echo "$bc" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['error'] is None and isinstance(d['result'], int)" && ok "console getblockcount" || bad "console: $bc"

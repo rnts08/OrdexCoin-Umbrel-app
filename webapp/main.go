@@ -85,6 +85,7 @@ func registerRoutes(mux *http.ServeMux, s *Server) {
 	mux.HandleFunc("POST /api/addresses/new", s.handleNewAddress)
 	mux.HandleFunc("POST /api/send", s.handleSend)
 	mux.HandleFunc("GET /api/fee-estimate", s.handleFeeEstimate)
+	mux.HandleFunc("GET /api/pool", s.handlePool)
 	mux.HandleFunc("POST /api/console", s.handleConsole)
 	mux.HandleFunc("POST /api/tip", s.handleTip)
 	mux.HandleFunc("GET /api/wallets", s.handleWallets)

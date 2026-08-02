@@ -405,9 +405,25 @@ input[type="text"]:focus {
 .toast.gold { border-color: var(--gold); color: var(--gold); }
 @keyframes slidein { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/* ---------- Footer ---------- */
+.site-footer {
+  margin-top: 28px; padding: 20px 24px;
+  border-top: 1px solid var(--gold-soft);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.footer-links a {
+  color: var(--muted); font-size: 13px; font-weight: 600;
+  text-decoration: none; letter-spacing: 0.02em; transition: color .2s;
+}
+.footer-links a:hover { color: var(--gold); }
+.footer-note { color: var(--muted); font-size: 12px; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .balance-amount { font-size: 30px; }
   .console-form, .inline-form { flex-direction: column; align-items: stretch; }
   .tab { min-width: 76px; }
+  .site-footer { flex-direction: column; align-items: flex-start; }
 }

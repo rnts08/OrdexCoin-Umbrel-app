@@ -24,6 +24,19 @@ function fmtBytes(n) {
   return n + " B";
 }
 
+function fmtHash(n) {
+  if (n == null || isNaN(n)) return "—";
+  const units = ["H/s", "KH/s", "MH/s", "GH/s", "TH/s", "PH/s", "EH/s"];
+  let i = 0;
+  while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
+  return n.toFixed(2) + " " + units[i];
+}
+
+function fmtPrice(n) {
+  if (n == null || isNaN(n)) return "N/A";
+  return "$" + Number(n).toFixed(6);
+}
+
 function fmtDate(ts) {
   if (!ts) return "—";
   return new Date(ts * 1000).toLocaleString();
@@ -223,12 +236,15 @@ const STATUS_CARDS = [
   { k: "time", label: "Node time", fmt: fmtDate },
   { k: "mempoolbytes", label: "Mempool size", fmt: fmtBytes },
   { k: "mempooltx", label: "Mempool transactions" },
+  { k: "poolHashrate", label: "Network hashrate", pool: true, fmt: fmtHash },
+  { k: "poolBlockReward", label: "Block reward", pool: true },
 ];
 
 function renderStatus(data) {
   const chain = data.chain || {};
   const network = data.network || {};
   const mempool = data.mempool || {};
+  const pool = state.pool || {};
   const root = $("#status-cards");
   root.innerHTML = "";
 
@@ -246,15 +262,19 @@ function renderStatus(data) {
     time: chain.time,
     mempoolbytes: mempool.bytes,
     mempooltx: mempool.size,
+    poolHashrate: pool.networkHashrate,
+    poolBlockReward: pool.blockReward,
   };
 
   for (const c of STATUS_CARDS) {
     const v = map[c.k];
-    if (v == null) continue;
+    if (v == null && !c.pool) continue;
     const card = document.createElement("div");
     card.className = "card";
+    card.id = c.pool ? "pool-" + c.k : "";
+    const display = v == null ? "—" : (c.fmt ? c.fmt(v) : v);
     card.innerHTML = `<div class="card-label">${esc(c.label)}</div>` +
-      `<div class="card-value ${typeof v === "string" && v.length > 22 ? "small mono" : "small"}">${esc(c.fmt ? c.fmt(v) : v)}</div>`;
+      `<div class="card-value ${typeof display === "string" && display.length > 22 ? "small mono" : "small"}">${esc(display)}</div>`;
     root.appendChild(card);
   }
 
@@ -277,6 +297,31 @@ async function loadStatus() {
   } catch (e) {
     setNodePill(false);
   }
+}
+
+// Pool data (network hashrate, block reward, OXC price) is loaded from the
+// backend proxy asynchronously. If the pool or price APIs are unreachable the
+// cards simply keep their "—"/N/A placeholders; nothing here is critical.
+async function loadPool() {
+  let data = {};
+  try {
+    data = await getJSON("/api/pool");
+  } catch (e) {
+    data = {};
+  }
+  state.pool = data;
+  updatePoolCards();
+}
+
+function updatePoolCards() {
+  const pool = state.pool || {};
+  const set = (id, v, fmt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmt ? fmt(v) : (v == null ? "—" : v);
+  };
+  set("pool-poolHashrate", pool.networkHashrate, fmtHash);
+  set("pool-poolBlockReward", pool.blockReward);
+  set("bal-price", pool.priceUsd, fmtPrice);
 }
 
 /* ---------------- balances ---------------- */
@@ -574,6 +619,7 @@ function bindEvents() {
 
   $("#refresh-btn").addEventListener("click", () => {
     loadStatus();
+    loadPool();
     loadWallets().then(() => {
       loadBalances();
       loadTransactions();
@@ -681,6 +727,7 @@ function pushConsoleHistory(m) {
   await loadWallets();
   loadStatus();
   loadBalances();
+  loadPool();
 
   if (state.wallet) {
     loadTransactions();
@@ -690,6 +737,7 @@ function pushConsoleHistory(m) {
   // Polling: fast for status/balances, slow for the rest.
   setInterval(loadStatus, 6000);
   setInterval(loadBalances, 6000);
+  setInterval(loadPool, 60000);
   setInterval(() => { if (state.wallet) { loadTransactions(); loadAddresses(); } }, 30000);
 })();
 
