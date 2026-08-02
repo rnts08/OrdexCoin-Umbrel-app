@@ -12,14 +12,33 @@
 #                        (default: 25174; mainnet default)
 #   ORDEXCOIN_WEB_ADDR - web UI listen address (default: 0.0.0.0:3000)
 #   ORDEXCOIN_WEB_USER / ORDEXCOIN_WEB_PASS - optional web UI basic auth
+#   ORDEXCOIN_UID / ORDEXCOIN_GID - drop to this user inside /data (default
+#                                  1000:1000, the umbrelOS app uid/gid)
 set -euo pipefail
 
 DATADIR="${ORDEXCOIN_DATA:-/data}"
 RPC_URL="${ORDEXCOIN_RPC_URL:-http://127.0.0.1:25173}"
 P2P_PORT="${ORDEXCOIN_P2P_PORT:-25174}"
 WEB_ADDR="${ORDEXCOIN_WEB_ADDR:-0.0.0.0:3000}"
+ORDEXCOIN_UID="${ORDEXCOIN_UID:-1000}"
+ORDEXCOIN_GID="${ORDEXCOIN_GID:-1000}"
 
 mkdir -p "$DATADIR"
+
+# Repair the data directory ownership regardless of who created it. A bind or
+# volume mount taken from an umbrelOS/root-owned location is not writable by the
+# unprivileged runtime user, which previously made the first write below fail
+# with "Permission denied". To set ownership we need root, so when the container
+# is launched as root (the compose omits `user:`) we fix the mount and then
+# re-exec this script as $ORDEXCOIN_UID:$ORDEXCOIN_GID. Running the daemon as a
+# non-root user is mandatory (ordexcoind refuses to run as root).
+chown -R "$ORDEXCOIN_UID:$ORDEXCOIN_GID" "$DATADIR" || true
+
+if [ "$(id -u)" -eq 0 ]; then
+  exec setpriv --reuid="$ORDEXCOIN_UID" --regid="$ORDEXCOIN_GID" \
+    --init-groups /usr/local/bin/entrypoint.sh "$@"
+fi
+
 CONF="$DATADIR/ordexcoin.conf"
 
 # Generate a minimal config on first run. No rpcuser/rpcpassword is set so the

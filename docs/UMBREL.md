@@ -104,7 +104,10 @@ See `ordexcoin/umbrel-app.yml`. Fill in: `id` (suggest `ordexcoin`),
 See `ordexcoin/docker-compose.yml`. Key points:
 - `app_proxy` with `APP_HOST: ordexcoin_app_1`, `APP_PORT: 3000`
 - main service pinned `image: <org>/ordexcoin:<ver>@sha256:<digest>`
-- `user: "1000:1000"`, `restart: on-failure`, `stop_grace_period: 15m30s`
+- `restart: on-failure`, `stop_grace_period: 15m30s`. The container starts as
+  root and `entrypoint.sh` repairs `${APP_DATA_DIR}/data` ownership then drops
+  to `1000:1000` (the umbrelOS app uid/gid), so root-created/data mounts are
+  writable and `ordexcoind` still runs as a non-root user.
 - `volumes: ${APP_DATA_DIR}/data:/data`
 - publish P2P port (e.g. `${APP_ORDEXCOIN_P2P_PORT}`) if the node should be reachable
 - pass through web UI auth from `${APP_PASSWORD}`/`${APP_SEED}` if desired

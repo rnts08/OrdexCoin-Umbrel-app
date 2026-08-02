@@ -27,7 +27,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ordexcoin-web .
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates bash \
+    && apt-get install -y --no-install-recommends ca-certificates bash util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=webapp-build /out/ordexcoin-web /usr/local/bin/ordexcoin-web
